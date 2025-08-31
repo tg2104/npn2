@@ -8,11 +8,27 @@ import pandas as pd
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.preprocessing import MultiLabelBinarizer
 
+import boto3
+import pandas as pd
+
 # -------------------------
-# 0) Load data
+# 0) Load data (from S3)
 # -------------------------
-INPUT_CSV = "Hotel_Reviews_AllCols.csv"
-df = pd.read_csv(INPUT_CSV)
+BUCKET_NAME = "npn.tg"  # change to your bucket name
+FILE_KEY = "Hotel_Reviews_AllCols.csv"   # file name inside S3
+
+s3 = boto3.client("s3")
+
+def load_data():
+    obj = s3.get_object(Bucket=BUCKET_NAME, Key=FILE_KEY)
+    df = pd.read_csv(obj["Body"])  # "Body" is a streaming object
+    return df
+
+df = load_data()
+
+# Mirror your pipeline’s variable names
+df1 = df.copy()  # review-level table used by hybrid_recommender
+
 
 # Mirror your pipeline’s variable names
 df1 = df.copy()  # review-level table used by hybrid_recommender
